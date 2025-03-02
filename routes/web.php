@@ -66,6 +66,8 @@ Route::get('/comparador', [SupermercadosController::class, 'index'])->middleware
 Route::post('/comparador/supermercados', [SupermercadosController::class, 'nuevo'])->middleware(['auth'])->name('supermercado.nuevo');
 Route::post('/comparador/productos', [ProductosController::class, 'index'])->middleware(['auth'])->name('producto.nuevo');
 Route::post('/comparador/precio', [PreciosController::class, 'nuevo'])->middleware(['auth'])->name('comparacion.nuevo');
+Route::delete('/comparador/{id}', [PreciosController::class, 'delete'])->middleware(['auth'])->name('precio.delete');
+Route::put('/precio/editar', [PreciosController::class, 'update'])->name('precio.editar');
 
 
 

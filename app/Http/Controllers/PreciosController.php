@@ -17,4 +17,25 @@ class PreciosController extends Controller
 
         return redirect()->back();
     }
+
+    public function delete($id){
+        $compa = Precio::find($id);
+        $compa->delete();
+
+        return redirect()->back();
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:precios,id',
+            'precio' => 'required|numeric|min:0',
+        ]);
+
+        $precio = Precio::find($request->id);
+        $precio->precio = $request->precio;
+        $precio->save();
+
+        return redirect()->back()->with('success', 'Precio actualizado correctamente');
+    }
 }

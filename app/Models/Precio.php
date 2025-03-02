@@ -13,11 +13,12 @@ class Precio extends Model
 
      public function producto()
      {
-         return $this->belongsTo(Producto::class);
+         return $this->belongsTo(Producto::class, 'producto_id');
+
      }
 
      public function supermercado()
      {
-         return $this->belongsTo(Supermercado::class);
+         return $this->belongsTo(Supermercado::class, 'supermercado_id');
      }
 }

@@ -1,24 +1,30 @@
 <x-app-layout>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 flex">
+        <div class="mx-auto sm:px-6 lg:px-8 flex ">
             <!-- Contenido principal -->
             <div class="bg-white dark:bg-gray-700 overflow-hidden shadow-sm sm:rounded-lg flex-1">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <table id="" class="w-full text-sm text-left text-gray-50 rtl:text-right dark:text-gray-400">
+                    <form class="text-black font-bold my-4" method="GET" action="{{ route('comparador') }}">
+                        <input type="text" name="query" value="{{ request('query') }}"
+                            placeholder="Buscar concepto...">
+                        <button type="submit" class="text-white">Buscar</button>
+                    </form>
+                    <table id=""
+                        class="w-full text-sm text-left text-gray-50 rtl:text-right dark:text-gray-400">
                         <thead class="text-xs uppercase text-gray-50 bg-gray-50 dark:bg-gray-700 dark:text-gray-50">
                             <tr>
 
-                                <th scope="col" class="px-6 py-3 text-center">
+                                <th scope="col" class=" py-3  text-center">
                                     Producto
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-center">
+                                <th scope="col" class=" py-3 text-center">
                                     Supermercado
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-center">
+                                <th scope="col" class=" py-3 text-center">
                                     Precio
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-center">
+                                <th scope="col" class="py-3 text-center">
                                     Acciones
                                 </th>
                             </tr>
@@ -27,27 +33,40 @@
                             @foreach ($precios as $precio)
                                 <tr class="bg-white border-b dark:bg-gray-200 dark:border-gray-100 hover:bg-gray-50 ">
 
-                                    <td class="px-6 py-4 font-semibold text-gray-900 text-center capitalize">
+                                    <td class=" font-semibold text-gray-900 text-center capitalize">
                                         <h2>{{ $precio->producto->nombre ?? 'Sin categoría' }}</h2>
                                     </td>
 
-                                    <td class="px-6 py-4 text-gray-900 text-center capitalize">
+                                    <td class=" text-gray-900 text-center capitalize">
                                         <h2>{{ $precio->supermercado->nombre ?? 'Sin Productos' }}</h2>
                                     </td>
 
-                                    <td class="px-6 py-4 text-gray-900 text-center capitalize">
+                                    <td class=" text-gray-900 text-center capitalize">
                                         <h2>{{ $precio->precio }}€</h2>
                                     </td>
 
-                                    <td class="px-6 py-4 flex justify-center gap-2">
-                                        <form action="" method="POST" class="inline-block">
+                                    <td class="py-4 flex justify-center gap-2">
+                                        <button x-data
+                                            @click.prevent="
+                                            $dispatch('open-modal', 'editar_precio');
+                                            $dispatch('set-precio', {
+                                                id: '{{ $precio->id }}',
+                                                precio: '{{ $precio->precio }}',
+                                                producto: '{{ $precio->producto->nombre }}',
+                                                supermercado: '{{ $precio->supermercado->nombre }}'});"
+                                            class="bg-blue-500 font-bold text-white p-2 rounded-2xl">
+                                            Modificar
+                                        </button>
+
+
+                                        <form action="{{ route('precio.delete', $precio->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
                                                 class="bg-red-500 font-bold text-white p-2 rounded-2xl">Eliminar</button>
                                         </form>
-
                                     </td>
+
                                 </tr>
                             @endforeach
                         </tbody>
@@ -65,8 +84,6 @@
                     precios
                     de los productos en los diferentes supermercados.
                 <div class="text-center">
-                    <input class=" my-4 text-gray-900 w-full " type="text" id="buscador" placeholder="Buscar..."
-                        class="p-2 mb-4 w-full border rounded-md">
 
                     <button x-data @click.prevent="$dispatch('open-modal', 'nueva_comparacion')"
                         class="btn btn-active btn-info btn-neutral mb-4 w-full text-xl">
@@ -209,29 +226,42 @@
     </form>
 </x-modal>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const inputBuscador = document.getElementById("buscador");
-        const filas = document.querySelectorAll("tbody tr");
+<x-modal name="editar_precio" :show="$errors->isNotEmpty()" focusable>
+    <form action="{{ route('precio.editar') }}" method="POST" class="p-6" x-data="{ id: '', precio: '', producto: '', supermercado: '' }"
+        @set-precio.window="id = $event.detail.id; precio = $event.detail.precio; producto = $event.detail.producto; supermercado = $event.detail.supermercado">
+        @csrf
+        @method('PUT')
 
-        inputBuscador.addEventListener("input", function() {
-            const texto = inputBuscador.value.toLowerCase();
+        <h2 class="text-lg font-medium text-white">Editar Precio</h2>
 
-            filas.forEach(fila => {
-                const producto = fila.querySelector("td:nth-child(1) h2").textContent
-                    .toLowerCase();
-                const supermercado = fila.querySelector("td:nth-child(2) h2").textContent
-                    .toLowerCase();
-                const precio = fila.querySelector("td:nth-child(3) h2").textContent
-                .toLowerCase();
+        <input type="hidden" id="precio_id" name="id" x-model="id">
 
-                if (producto.includes(texto) || supermercado.includes(texto) || precio.includes(
-                        texto)) {
-                    fila.style.display = "";
-                } else {
-                    fila.style.display = "none";
-                }
-            });
-        });
-    });
-</script>
+        <div class="mt-6">
+            <label class="text-white">Producto</label>
+            <input type="text" id="producto" class="block w-full mt-1 bg-gray-800 text-white p-2 rounded"
+                x-model="producto" disabled>
+        </div>
+
+        <div class="mt-6">
+            <label class="text-white">Supermercado</label>
+            <input type="text" id="supermercado" class="block w-full mt-1 bg-gray-800 text-white p-2 rounded"
+                x-model="supermercado" disabled>
+        </div>
+
+        <div class="mt-6">
+            <label class="text-white">Nuevo Precio</label>
+            <input type="text" id="nuevo_precio" name="precio"
+                class="block w-full mt-1 bg-gray-800 text-white p-2 rounded" x-model="precio">
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <x-secondary-button x-on:click="$dispatch('close')">
+                {{ __('Cancelar') }}
+            </x-secondary-button>
+
+            <button type="submit" class="ms-3 bg-green-500 text-white px-4 py-2 rounded-lg">
+                {{ __('Guardar Cambios') }}
+            </button>
+        </div>
+    </form>
+</x-modal>
